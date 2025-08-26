@@ -1,16 +1,17 @@
 {
-    "name": "basecamp",
-    "module": "index.ts",
-    "type": "module",
-    "description": "project management",
-    "author": "shourya",
-    "scripts": {
-        "dev": "bun run --hot index.ts"
-    },
-    "devDependencies": {
-        "@types/bun": "latest"
-    },
-    "peerDependencies": {
-        "typescript": "^5.0.0"
-    }
+  "name": "basecamp",
+  "module": "index.ts",
+  "type": "module",
+  "description": "project management",
+  "author": "shourya",
+  "scripts": {
+    "dev": "bun run --hot index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "3.6.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }
