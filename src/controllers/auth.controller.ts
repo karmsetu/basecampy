@@ -1,11 +1,16 @@
 import { asyncHandler } from "../utils/asyncHandler";
-import { registerUserSchema } from "../validators/request.validator";
+import {
+  loginUserSchema,
+  registerUserSchema,
+} from "../validators/request.validator";
 import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user.model";
 import { emailVerificationMailgenContent, sendEmail } from "../utils/mail";
 import { ApiResponse } from "../utils/ApiResponse";
+import type { Types } from "mongoose";
+import type { CookieOptions } from "express";
 
-const generateAccessTokenAndRefreshToken = async (userId: string) => {
+const generateAccessTokenAndRefreshToken = async (userId: Types.ObjectId) => {
   try {
     const user = await User.findById(userId);
     const accessToken = user?.generateAccessToken();
@@ -73,6 +78,47 @@ export const registerUser = asyncHandler(async (req, res) => {
         200,
         { user: createdUser },
         "user registered successfully and verification email has been sent",
+      ),
+    );
+});
+
+export const login = asyncHandler(async (req, res) => {
+  const validatedResult = await loginUserSchema.safeParseAsync(req.body);
+  if (validatedResult.error)
+    throw new ApiError(
+      400,
+      validatedResult.error.message,
+      [validatedResult.error],
+      validatedResult.error.stack,
+    );
+
+  const { email, password } = validatedResult.data;
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(400, "user doesn't exist");
+
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) throw new ApiError(400, "Invalid Credentials");
+
+  const { accessToken, refreshToken } =
+    await generateAccessTokenAndRefreshToken(user._id);
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken -emailVerificationToken -emailVerificationExpiry",
+  );
+
+  const options: CookieOptions = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("access-token", accessToken, options)
+    .cookie("refresh-token", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User logged in successfully",
       ),
     );
 });

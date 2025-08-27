@@ -10,3 +10,23 @@ Content-Type: application/json
   "username": "alice",
   "password": "securepassword123"
 }
+
+### Login User
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "securepassword123"
+}
+
+###
+
+### Login with Missing Fields (Test Validation)
+POST http://localhost:8000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  // missing password
+}
