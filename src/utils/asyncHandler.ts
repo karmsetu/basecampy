@@ -5,8 +5,12 @@ import {
   type RequestHandler,
 } from "express";
 
-export const asyncHandler = (requestHandler: RequestHandler) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
+export const asyncHandler = (fn: RequestHandler) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await fn(req, res, next);
+    } catch (err) {
+      next(err);
+    }
   };
 };

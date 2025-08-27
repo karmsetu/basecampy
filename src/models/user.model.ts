@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType } from "mongoose";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
@@ -113,4 +113,15 @@ userSchema.methods.generateTemporaryToken = function () {
   return { unHashedToken, hashedToken, tokenExpiry };
 };
 
-export const User = mongoose.model("User", userSchema);
+export interface IUserModel extends InferSchemaType<typeof userSchema> {
+  isPasswordCorrect(password: string): Promise<boolean>;
+  generateAccessToken(): string;
+  generateRefreshToken(): string;
+  generateTemporaryToken(): {
+    unHashedToken: string;
+    hashedToken: string;
+    tokenExpiry: number;
+  };
+}
+
+export const User = mongoose.model<IUserModel>("User", userSchema);
