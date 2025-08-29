@@ -7,10 +7,9 @@ import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user.model";
 import { emailVerificationMailgenContent, sendEmail } from "../utils/mail";
 import { ApiResponse } from "../utils/ApiResponse";
-import type { Types } from "mongoose";
 import type { CookieOptions } from "express";
 
-const generateAccessTokenAndRefreshToken = async (userId: Types.ObjectId) => {
+const generateAccessTokenAndRefreshToken = async (userId: string) => {
   try {
     const user = await User.findById(userId);
     const accessToken = user?.generateAccessToken();
@@ -121,4 +120,24 @@ export const login = asyncHandler(async (req, res) => {
         "User logged in successfully",
       ),
     );
+});
+
+export const logout = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        refreshToken: "",
+      },
+    },
+    { new: true }, //once everything is done give me the newest object
+  );
+
+  const options: CookieOptions = { httpOnly: true, secure: true };
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "user logged out"));
 });

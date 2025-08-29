@@ -1,8 +1,49 @@
-import mongoose, { Schema, type InferSchemaType } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
-const userSchema = new Schema(
+// types/User.ts or models/User.ts
+import { Document, Types } from "mongoose";
+
+// Define nested avatar structure
+interface Avatar {
+  url: string;
+  localPath: string;
+}
+
+// Main user interface
+export interface IUser extends Document {
+  _id: string;
+  avatar: Avatar;
+  username: string;
+  email: string;
+  fullName?: string; // optional
+  password: string; // required with custom message
+  isEmailVerified: boolean;
+
+  // Token fields
+  refreshToken?: string;
+  forgotPasswordToken?: string;
+  forgotPasswordExpiry?: Date;
+  emailVerificationToken?: string;
+  emailVerificationExpiry?: Date;
+
+  // Mongoose timestamps
+  createdAt: Date;
+  updatedAt: Date;
+
+  // Instance methods
+  isPasswordCorrect(password: string): Promise<boolean>;
+  generateAccessToken(): string;
+  generateRefreshToken(): string;
+  generateTemporaryToken(): {
+    unHashedToken: string;
+    hashedToken: string;
+    tokenExpiry: number;
+  };
+}
+
+const userSchema = new Schema<IUser>(
   {
     avatar: {
       type: {
@@ -113,15 +154,4 @@ userSchema.methods.generateTemporaryToken = function () {
   return { unHashedToken, hashedToken, tokenExpiry };
 };
 
-export interface IUserModel extends InferSchemaType<typeof userSchema> {
-  isPasswordCorrect(password: string): Promise<boolean>;
-  generateAccessToken(): string;
-  generateRefreshToken(): string;
-  generateTemporaryToken(): {
-    unHashedToken: string;
-    hashedToken: string;
-    tokenExpiry: number;
-  };
-}
-
-export const User = mongoose.model<IUserModel>("User", userSchema);
+export const User = mongoose.model<IUser>("User", userSchema);
