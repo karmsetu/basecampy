@@ -9,10 +9,11 @@ declare namespace NodeJS {
     ACCESS_EXPIRY?: `${number}d`;
     REFRESH_TOKEN_SECRET?: string;
     REFRESH_EXPIRY?: `${number}d`;
-    MAILTRAP_SMTP_PORT?: strings;
-    MAILTRAP_SMTP_HOST?: strings;
-    MAILTRAP_SMTP_USER?: strings;
-    MAILTRAP_SMTP_PASSWORD?: strings;
+    MAILTRAP_SMTP_PORT?: string;
+    MAILTRAP_SMTP_HOST?: string;
+    MAILTRAP_SMTP_USER?: string;
+    MAILTRAP_SMTP_PASSWORD?: string;
+    FORGOT_PASSWORD_REDIRECT_URL?: string;
     // Add your other variables here
   }
 }
