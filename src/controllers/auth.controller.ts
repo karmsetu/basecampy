@@ -2,6 +2,9 @@ import { asyncHandler } from "../utils/asyncHandler";
 import {
   loginUserSchema,
   registerUserSchema,
+  userChangeCurrentPasswordSchema,
+  userForgotPasswordSchema,
+  userResetForgotPasswordSchema,
 } from "../validators/request.validator";
 import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user.model";
@@ -251,8 +254,15 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-  if (!email) throw new ApiError(400, "Email field is Missing");
+  const validatedResult = await userForgotPasswordSchema.safeParseAsync(
+    req.body,
+  );
+  if (validatedResult.error)
+    throw new ApiError(400, validatedResult.error.message, [
+      validatedResult.error,
+    ]);
+
+  const { email } = validatedResult.data;
 
   const user = await User.findOne({ email });
   if (!user) throw new ApiError(404, "User with this Email not Found");
@@ -287,7 +297,14 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
 export const resetForgotPassword = asyncHandler(async (req, res) => {
   const { resetToken } = req.params;
-  const { newPassword } = req.body;
+  const validatedResult = await userResetForgotPasswordSchema.safeParseAsync(
+    req.body,
+  );
+  if (validatedResult.error)
+    throw new ApiError(400, validatedResult.error.message, [
+      validatedResult.error,
+    ]);
+  const { newPassword } = validatedResult.data;
 
   let hashedToken = crypto
     .createHash("sha256")
@@ -314,9 +331,14 @@ export const resetForgotPassword = asyncHandler(async (req, res) => {
 });
 
 export const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
-  if (!oldPassword || !newPassword)
-    throw new ApiError(400, "oldPassword or newPassword fields are missing");
+  const validatedResult = await userChangeCurrentPasswordSchema.safeParseAsync(
+    req.body,
+  );
+  if (validatedResult.error)
+    throw new ApiError(400, validatedResult.error.message, [
+      validatedResult.error,
+    ]);
+  const { oldPassword, newPassword } = validatedResult.data;
 
   const user = await User.findById(req.user?._id);
   if (!user) throw new ApiError(404, "User with this ID not found");
